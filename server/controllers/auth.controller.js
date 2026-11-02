@@ -71,3 +71,16 @@ export const logout = async (re, res) => {
     })
   }
 }
+
+export const me = async (req, res) => {
+  try {
+    const user = req.user
+    return res.status(200).json(
+      user
+    )
+  } catch (error) {
+    return res.status(500).json({
+      msg: `me error ${error}`
+    })
+  }
+}
