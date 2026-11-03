@@ -1,0 +1,48 @@
+import { cn } from "cn";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { FcGoogle } from "react-icons/fc";
+
+export function LoginForm({ className, ...props }) {
+  return (
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Card className='border-0 bg-transparent shadow-none'>
+        <CardHeader className="space-y-3 text-center">
+          <CardTitle className="text-xl font-semibold tracking-tight text-white">Welcome to Automate AI</CardTitle>
+          <CardDescription className='text-sm text-zinc-400'>
+            Sign in to build and manage your AI agents.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='pt-4'>
+          <form>
+            <FieldGroup>
+              <Field>
+                <Button variant="outline" type="button" className='h-12 w-full ga[-3 rounded-xl
+                border-white/15 bg-white/[0.04] text-sm font-medium text-white transition
+                hover:border-violet-400/50 hover:bg-white/[0.08] hover:text-white'>
+                  <FcGoogle />
+                  Login with Google
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
