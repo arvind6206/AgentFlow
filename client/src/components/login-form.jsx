@@ -20,9 +20,12 @@ import { FcGoogle } from "react-icons/fc";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/firebase";
 import { login } from "@/features/auth";
+import { useDispatch } from "react-redux";
+import { setUserData } from "@/redux/userSlice.js";
 
 export function LoginForm({ className, ...props }) {
 
+  const dispatch = useDispatch()
   const handleGoogleLogin = async () => {
     try {
      const result = await signInWithPopup(auth, googleProvider)
@@ -31,6 +34,7 @@ export function LoginForm({ className, ...props }) {
 
      const data = await login(token)
      console.log(data)
+     dispatch(setUserData(data))
     } catch (error) {
       console.error(error)
     }
