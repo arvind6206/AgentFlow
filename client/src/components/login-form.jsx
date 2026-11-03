@@ -19,14 +19,18 @@ import { Input } from "@/components/ui/input";
 import { FcGoogle } from "react-icons/fc";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/firebase";
+import { login } from "@/features/auth";
 
 export function LoginForm({ className, ...props }) {
 
   const handleGoogleLogin = async () => {
     try {
-     const data = await signInWithPopup(auth, googleProvider)
+     const result = await signInWithPopup(auth, googleProvider)
      
-     const token = data.user.getIdToken()
+     const token = await result.user.getIdToken()
+
+     const data = await login(token)
+     console.log(data)
     } catch (error) {
       console.error(error)
     }
