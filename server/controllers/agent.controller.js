@@ -40,3 +40,35 @@ export const getAllAgents = async (req, res) => {
         })
     }
 }
+
+export const getAgentById = async (req, res) => {
+    try {
+        const userId = req.user?._id
+        const agentId = req.params.id
+
+        const findAgent = await Agent.findById(agentId)
+
+        return res.status(200).json(findAgent)
+    } catch (error) {
+        return res.status(500).json({
+            msg: `get agent by id error ${error}`
+        })
+    }
+}
+
+export const deleteAgent = async (req, res) => {
+    try {
+        const agentId = req.params.id
+
+        const agent = await Agent.findByIdAndDelete(agentId)
+
+        return res.status(200).json({
+            msg: "agent deleted successfully",
+            agent
+        })
+    } catch (error) {
+        return res.status(500).json({
+            msg: `delete agent error ${error}`
+        })
+    }
+}
