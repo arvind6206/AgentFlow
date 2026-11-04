@@ -19,13 +19,12 @@ const agentSchema = new mongoose.Schema({
     },
     tools: [
         {
-            type: SVGStringList,
+            type: String,
             trim: true
         }
     ],
     isActive: {
         type: Boolean,
-        req
     }
 }, {timestamps: true})
 
