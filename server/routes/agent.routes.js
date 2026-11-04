@@ -5,8 +5,8 @@ import { protect } from '../middleware/protect.js'
 const agentRouter = express.Router()
 
 agentRouter.post('/create', protect, createAgent)
-agentRouter.get('/agents', protect, getAllAgents)
-agentRouter.get('/agent/:id', protect, getAgentById)
+agentRouter.get('/all', protect, getAllAgents)
+agentRouter.get('/:id', protect, getAgentById)
 agentRouter.delete('/:id', protect, deleteAgent)
 
 export default agentRouter
