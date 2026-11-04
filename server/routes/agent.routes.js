@@ -4,7 +4,7 @@ import { protect } from '../middleware/protect.js'
 
 const agentRouter = express.Router()
 
-agentRouter.post('/create', protect, createAgent)
+agentRouter.post('/', protect, createAgent)
 agentRouter.get('/all', protect, getAllAgents)
 agentRouter.get('/:id', protect, getAgentById)
 agentRouter.delete('/:id', protect, deleteAgent)
