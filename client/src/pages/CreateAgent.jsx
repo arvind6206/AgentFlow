@@ -1,8 +1,10 @@
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { createAgent } from "@/features/agent";
 import { ArrowLeft, Bot, Check, Workflow } from "lucide-react";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useNavigation } from "react-router-dom";
 
 const availableTools = [
   {
@@ -34,11 +36,14 @@ const fieldCls =
   "rounded-xl border-white/10 bg-white/[0.04] text-sm text-white backdrop-blur-xl placeholder:text-zinc-500 focus-visible:border-white/25 focus-visible:ring-0";
 
 const CreateAgent = () => {
+  const [loading, setLoading] = useState(false)
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
   const [knowledgeBase, setKnowledgeBase] = useState("");
 
   const [tools, setTools] = useState([]);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const toggleTool = (tool) => {
     setTools((prevTools) => {
@@ -49,6 +54,23 @@ const CreateAgent = () => {
       }
     });
   };
+
+  const handleSubmit = async(e) => {
+     e.preventDefault()
+     setLoading(true)
+   try {
+    const data = await createAgent({
+      name, knowledgeBase, instructions, tools
+    })
+    console.log(data)
+    setLoading(false)
+    navigate('/agent')
+   } catch (error) {
+    console.log(error)
+    setError(error.response.data.message || "Unable to create agent")
+    setLoading(false)
+   }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,#2b2f3a_0%,#191b21_55%,#121317_100%)] text-white">
@@ -167,7 +189,7 @@ const CreateAgent = () => {
                   return (
                     <button
                       key={t.id}
-                      onClick={() => toggleTool(t.id)}
+                      onClick={(e) => {e.preventDefault(); toggleTool(t.id)}}
                       className={`flex w-full items-center justify-between gap-4 px-4
                         py-3.5 text-left transition ${index !== 0 ? "border-t border-white/[0.08]" : ""}
                         ${
@@ -177,23 +199,55 @@ const CreateAgent = () => {
                         }`}
                     >
                       <div>
-                        <p className='text-xs font-medium text-zinc-100'>{t.name}</p>
-                        <p className='mt-1 text-[11px]'>{t.description}</p>
+                        <p className="text-xs font-medium text-zinc-100">
+                          {t.name}
+                        </p>
+                        <p className="mt-1 text-[11px]">{t.description}</p>
                       </div>
 
-                      <span className={`
+                      <span
+                        className={`
                         flex size-[18px] shrink-0 items-center justify-center
-                        rounded-md border ${selected
-                          ? "border-white bg-white text-zinc-900"
-                          : "border-white/20 text-transparent"
-                        }`}>
-                        {selected && <Check size={12}/>}
+                        rounded-md border ${
+                          selected
+                            ? "border-white bg-white text-zinc-900"
+                            : "border-white/20 text-transparent"
+                        }`}
+                      >
+                        {selected && <Check size={12} />}
                       </span>
                     </button>
                   );
                 })}
               </div>
             </section>
+
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl border border-red-500/20 bg-red-500/[0.08] px-4 py-3 text-xs text-red-300"
+              >
+                {error}
+              </p>
+            )}
+
+            <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/")}
+                className="rounded-xl text-xs text-zinc-400 hover:bg-white/10 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                onClick={handleSubmit}
+                className="h-10 rounded-xl bg-white px-5 text-xs font-medium text-zinc-900 hover:bg-zinc-200"
+              >
+                {loading ? "Creating..." : "Create Agent"}
+              </Button>
+            </div>
           </form>
         </main>
       </div>
