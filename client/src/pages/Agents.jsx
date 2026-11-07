@@ -3,10 +3,12 @@ import { Input } from "@/components/ui/input";
 import { getAllAgents } from "@/features/agent";
 import {
   ArrowLeft,
+  ArrowRight,
   Bot,
   Plus,
   RefreshCcw,
   Search,
+  Trash,
   Workflow,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -128,12 +130,69 @@ const Agents = () => {
                   <div
                     key={agentId}
                     className={`group flex min-h-56 flex-col rounded-2xl p-5 transition hover:border-white/25 hover:bg-white/[0.06] ${darkPanel}`}
-                  ></div>
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="grid size-11 place-items-center rounded-xl bg-white text-zinc-900 shadow-[0_8px_24px_rgba(255,255,255,0.1)]">
+                        <Bot size={22} />
+                      </div>
+                      <button
+                        className="rounded-lg p-2 text-zinc-500 transition hover:bg-red-500/10
+                      hover:text-red-400 disabled:opacity-50"
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </div>
+
+                    <h2 className="mt-5 truncate text-base font-medium text-white">
+                      {agent?.name || "Untitled Agent"}
+                    </h2>
+
+                    <p className="mt-2 line-clamp-3 flex-1 text-sm leading-6 text-zinc-600">
+                      {agent?.instructions || "No instructions provided."}
+                    </p>
+
+                    <div className="mt-5 flex items-center justify-between border-t border-white/[0.08] pt-4">
+                      <span className="text-xs text-zinc-600">My Agents</span>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-1.5 rounded-lg text-zinc-300 hover:bg-white/10 hover:text-white"
+                      >
+                        <Link
+                          to={"/"}
+                          className="inline-flex items-center gap-1.5"
+                        >
+                          <span>Use Agent</span>
+                          <ArrowLeft
+                            size={16}
+                            className="rotate-180 shrink-0"
+                          />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
                 );
               })}
             </div>
           ) : (
-            <div></div>
+            <div
+              className="mt-6 flex min-h-72 flex-col items-center justify-center rounded-2xl border
+            border-dashed border-white/15 bg-white/[0.02] px-5 text-center"
+            >
+              <div className="grid size-12 place-items-center rounded-xl bg-white text-zinc-900">
+                <Bot size={23} />
+              </div>
+              <h2 className="mt-4 text-base font-medium text-white">
+                {search ? "No agents found" : "No agents yet"}
+              </h2>
+
+              <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-500">
+                {search
+                  ? "Try searching with another name or keyword."
+                  : "Create your first AI agent to get started"}
+              </p>
+            </div>
           )}
         </main>
       </div>
