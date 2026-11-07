@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getAllAgents } from "@/features/agent";
+import { deleteAgent, getAllAgents } from "@/features/agent";
 import {
   ArrowLeft,
   ArrowRight,
@@ -48,6 +48,17 @@ const Agents = () => {
       agent?.knowledgeBase?.toLowerCase()?.includes(query)
     );
   });
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteAgent(id)
+      setAgents((prev) => {
+        return prev.filter((a) => a._id !== id)
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,#2b2f3a_0%,#191b21_55%,#121317_100%)] text-white">
@@ -136,6 +147,7 @@ const Agents = () => {
                         <Bot size={22} />
                       </div>
                       <button
+                        onClick={() => handleDelete(agent?._id)}
                         className="rounded-lg p-2 text-zinc-500 transition hover:bg-red-500/10
                       hover:text-red-400 disabled:opacity-50"
                       >
