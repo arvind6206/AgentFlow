@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getAllAgents } from "@/features/agent";
-import { ArrowLeft, Bot, Plus, Search, Workflow } from "lucide-react";
+import {
+  ArrowLeft,
+  Bot,
+  Plus,
+  RefreshCcw,
+  Search,
+  Workflow,
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -13,12 +20,16 @@ const whiteBtn =
 const Agents = () => {
   const [agents, setAgents] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
   const fetchAgents = async () => {
+    setLoading(true);
     try {
       const data = await getAllAgents();
       setAgents(data);
+      setLoading(false);
       console.log(data);
     } catch (error) {
+      setLoading(false);
       console.log(error);
     }
   };
@@ -91,7 +102,7 @@ const Agents = () => {
             <div className="relative">
               <Search
                 size={17}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
               />
 
               <Input
@@ -101,7 +112,29 @@ const Agents = () => {
                 className="h-10 w-full rounded-xl border-white/10 bg-white/[0.04] pl-9 text-white backdrop-blur-xl placeholder:text-zinc-500 focus-visible:border-white/25 focus-visible:ring-white/10"
               />
             </div>
+            <p className="text-xs text-zinc-500">{agents.length} Agents</p>
           </div>
+
+          {loading ? (
+            <div className="flex min-h-64 flex-col items-center justify-center gap-3 text-zinc-500">
+              <RefreshCcw size={22} className="animate-spin text-zinc-300" />
+              <p className="text-sm">Loading Your Agents...</p>
+            </div>
+          ) : filteredAgents.length > 0 ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAgents.map((agent) => {
+                const agentId = agent?._id;
+                return (
+                  <div
+                    key={agentId}
+                    className={`group flex min-h-56 flex-col rounded-2xl p-5 transition hover:border-white/25 hover:bg-white/[0.06] ${darkPanel}`}
+                  ></div>
+                );
+              })}
+            </div>
+          ) : (
+            <div></div>
+          )}
         </main>
       </div>
     </div>
