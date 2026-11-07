@@ -10,14 +10,14 @@ export const chat = async (req, res) => {
             })
         }
 
-        const threadId = String(req.user._id)
+        const threadId = req.user._id.toString()
 
         const data = await chatGraph.invoke({
             messages: [
                new HumanMessage(message)
             ]},
             {
-                configurable: {threadId}
+                configurable: {thread_id:threadId}
             }
         )
 
