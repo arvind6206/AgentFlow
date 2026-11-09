@@ -9,6 +9,8 @@ import Agents from './pages/Agents'
 import Integration from './pages/Integration'
 import CreateAgent from './pages/CreateAgent'
 import { chat } from './features/chat'
+import { setAgents, setAgentsLoading } from './redux/agentSlice'
+import { getAllAgents } from './features/agent'
 
 const App = () => {
   const dispatch = useDispatch()
@@ -26,6 +28,25 @@ const App = () => {
   fetch()
 
   }, [])
+
+  const fetchAgents = async () => {
+        dispatch(setAgentsLoading(true))
+    
+      try {
+        const data = await getAllAgents();
+        dispatch(setAgents(data))
+        dispatch(setAgentsLoading(false))
+        setLoading(false);
+        console.log(data);
+      } catch (error) {
+        dispatch(setAgentsLoading(false))
+        console.log(error);
+      }
+    };
+
+    useEffect(() => {
+      fetchAgents()
+    }, [])
 
 const {userData} = useSelector(state => state.user)
 

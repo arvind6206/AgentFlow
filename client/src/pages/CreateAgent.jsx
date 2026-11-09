@@ -64,7 +64,7 @@ const CreateAgent = () => {
     })
     console.log(data)
     setLoading(false)
-    navigate('/agent')
+    navigate('/agents')
    } catch (error) {
     console.log(error)
     setError(error.response.data.message || "Unable to create agent")

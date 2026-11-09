@@ -4,7 +4,8 @@ export const agentSlice = createSlice({
   name: 'agent',
   initialState: {
     agents: null,
-    selectedAgent: ""
+    selectedAgent: "",
+    agentsLoading: false
   },
   reducers: {
     
@@ -14,9 +15,19 @@ export const agentSlice = createSlice({
 
     setSelectedAgent: (state, action) => {
         state.selectedAgent = action.payload
+    },
+
+    setAgentsLoading:(state, action) => {
+        state.agentsLoading = action.payload
+    },
+
+    setDelete: (state, action) => {
+        const id = action.payload
+        state.agents = state.agents.filter((a) => a._id !== id)
     }
+
   }
 })
 
-export const {setAgents, setSelectedAgent} = agentSlice.actions
+export const {setAgents, setSelectedAgent, setAgentsLoading, setDelete} = agentSlice.actions
 export default agentSlice.reducer
