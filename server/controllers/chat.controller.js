@@ -22,7 +22,7 @@ export const chat = async (req, res) => {
         )
 
         const lastMessage = data.messages[data.messages.length - 1].content
-        return res.status(200).json(lastMessage)
+        return res.status(200).json({aiResponse: lastMessage})
     } catch (error) {
         return res.status(500).json({
             msg: `Chat controller error ${error}`

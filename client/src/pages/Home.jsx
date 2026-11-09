@@ -32,6 +32,7 @@ import {
 } from "@/redux/agentSlice";
 import { getAllAgents } from "@/features/agent";
 import { Textarea } from "@/components/ui/textarea";
+import { chat } from "@/features/chat";
 
 const hideScrollbar =
   "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -54,6 +55,7 @@ const Home = () => {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { userData } = useSelector((state) => state.user);
   const { agents, selectedAgent } = useSelector((state) => state.agent);
+  const [message, setMessage] = useState("")
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
@@ -79,6 +81,29 @@ const Home = () => {
     };
     fetchAgentsData();
   }, [userData]);
+
+  const handleSubmit = async(e) => {
+      e.preventDefault()
+    setMessages((prev) => [
+      ...prev, {
+        role: "user",
+        content: message
+      }
+    ])
+
+    if(!selectedAgent){
+      const res = await chat(message)
+
+      
+      setMessages((prev) => [
+        ...prev, {
+          role: "assistant",
+          content: res?.aiResponse || res?.response?.data?.message || "something went wrong"
+        }
+      ])
+      return
+    }
+  }
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,#2b2f3a_0%,#191b21_55%,#121317_100%)]">
@@ -250,10 +275,13 @@ const Home = () => {
 
             <div className="z-20 w-full shrink-0 px-3 pb-3 pt-2 sm:pb-4">
               <form
+                onSubmit={handleSubmit}
                 className={`mx-auto w-full max-w-2xl rounded-2xl p-3 transition-colors
                 focus-within:border-white/25 ${darkPanel}`}
               >
                 <Textarea
+                onChange={(e) => setMessage(e.target.value)}
+                value={message}
                   placeholder={"Ask me anything..."}
                   className={`min-h-20 resize-none border-0 !bg-transparent px-2 py-1.5 text-sm
                     text-white shadow-none placeholder:text-zinc-500 focus-visible:ring-0 ${hideScrollbar}`}
@@ -332,6 +360,7 @@ const Home = () => {
 
                   <div className="flex items-center gap-2">
                     <Button
+                    onClick={(e)=>handleSubmit(e)}
                       type="submit"
                       size="icon"
                       aria-label="Send message"
