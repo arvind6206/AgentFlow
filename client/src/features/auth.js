@@ -28,5 +28,6 @@ export const me = async () => {
         return data
     } catch (error) {
         console.log(error)
+        return null
     }
 }

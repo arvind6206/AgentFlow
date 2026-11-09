@@ -1,5 +1,6 @@
 import {
   Bot,
+  ChevronDown,
   ImagePlus,
   LogOut,
   Plus,
@@ -7,7 +8,7 @@ import {
   UserRound,
   Workflow,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,8 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/features/auth";
 import { setUserData } from "@/redux/userSlice";
+import { setSelectedAgent, setAgents, setAgentsLoading } from "@/redux/agentSlice";
+import { getAllAgents } from "@/features/agent";
 import { Textarea } from "@/components/ui/textarea";
 
 const hideScrollbar =
@@ -53,6 +56,7 @@ const Home = () => {
   ]);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { userData } = useSelector((state) => state.user);
+  const { agents, selectedAgent } = useSelector((state) => state.agent);
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
@@ -61,6 +65,23 @@ const Home = () => {
     dispatch(setUserData(null));
     setLogoutLoading(false);
   };
+
+  useEffect(() => {
+    const fetchAgentsData = async () => {
+      if (userData) {
+        dispatch(setAgentsLoading(true));
+        try {
+          const data = await getAllAgents();
+          dispatch(setAgents(data));
+        } catch (error) {
+          console.log(error);
+        } finally {
+          dispatch(setAgentsLoading(false));
+        }
+      }
+    };
+    fetchAgentsData();
+  }, [userData]);
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,#2b2f3a_0%,#191b21_55%,#121317_100%)]">
@@ -129,7 +150,7 @@ const Home = () => {
                   type="button"
                   aria-label="Open profile menu"
                   className="flex size-9
-                items-center justify-center overflow-hidden rounded-xl border border-white/10 mt-4 bg-white/[0.05]"
+                items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.05]"
                 >
                   {userData?.profilePicture ? (
                     <img
@@ -141,7 +162,6 @@ const Home = () => {
                     <UserRound size={17} className="text-zinc-300" />
                   )}
                 </button>
-                <Workflow size={17} />
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
@@ -160,10 +180,7 @@ const Home = () => {
 
                 <DropdownMenuSeparator className={menuSeperator} />
                 <DropdownMenuItem
-                  onClick={(event) => {
-                    handleLogout();
-                  }}
-                  asChild
+                  onClick={handleLogout}
                   className="cursor-pointer gap-2.5 rounded-xl
                 py-2.5 text-red-400 focus:bg-red-500/10 focus:text-red-400"
                 >
@@ -244,24 +261,60 @@ const Home = () => {
                   className={`min-h-20 resize-none border-0 !bg-transparent px-2 py-1.5 text-sm
                     text-white shadow-none placeholder:text-zinc-500 focus-visible:ring-0 ${hideScrollbar}`}
                 />
-                <div className='flex items-center justify-between gap-3 pt-2'>
-                  <div className='flex min-w-0 items-center gap-2'>
-                    <Button type="button"
-                    variant="ghost"
-                    aria-label="Attach image"
-                    title="Attach image"
-                    className='size-8 rounded-lg text-zinc-300 hover:bg-white/10 hover:text-white'>
-                      <ImagePlus size={17}/>
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      aria-label="Attach image"
+                      title="Attach image"
+                      className="size-8 rounded-lg text-zinc-300 hover:bg-white/10 hover:text-white"
+                    >
+                      <ImagePlus size={17} />
                     </Button>
 
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild >
-
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-8 max-w-48 gap-2 rounded-lg border
+                        border-white/10 bg-white/[0.05] px-2.5 text-xs
+                        text-zinc-300 hover:bg-white/10 hover:text-white"
+                        >
+                          <Bot size={14} className="shrink-0" />
+                          <span className="truncate">
+                            {selectedAgent || "Agent Not Selected"}
+                          </span>
+                          <ChevronDown size={14} />
+                        </Button>
                       </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="start"
+                        side="top"
+                        className={`mb-2 w-60 ${menuContent}`}
+                      >
+                        {!agents && 
+                          <DropdownMenuItem className={menuItem}>
+                            No Agent Found
+                          </DropdownMenuItem>
+                        }
+
+                        {
+                          agents?.map((agent, index) => (
+                            <DropdownMenuItem 
+                              key={index} 
+                              className={`cursor-pointer gap-2 ${menuItem}`}
+                              onClick={() => dispatch(setSelectedAgent(agent?.name))}
+                            >
+                              <Bot size={15} className='shrink-0 text-violet-300'/>
+                              {agent?.name}
+                            </DropdownMenuItem>
+                          ))
+                        }
+                      </DropdownMenuContent>
                     </DropdownMenu>
-
                   </div>
-
                 </div>
               </form>
             </div>

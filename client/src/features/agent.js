@@ -24,7 +24,7 @@ export const getAllAgents = async () => {
 
 export const getAgentById = async (id) => {
     try {
-        const {data} = await api.get(`/api/agent/:${id}`)
+        const {data} = await api.get(`/api/agent/${id}`)
         return data
     } catch (error) {
         console.log(error)
@@ -33,7 +33,7 @@ export const getAgentById = async (id) => {
 
 export const deleteAgent = async(id) => {
     try {
-        const {data} = await api.delete(`/api/agent/:${id}`)
+        const {data} = await api.delete(`/api/agent/${id}`)
         return data
     } catch (error) {
         console.log(error)

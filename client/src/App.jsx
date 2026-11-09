@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import { me } from './features/auth'
@@ -8,47 +8,29 @@ import Home from './pages/Home'
 import Agents from './pages/Agents'
 import Integration from './pages/Integration'
 import CreateAgent from './pages/CreateAgent'
-import { chat } from './features/chat'
-import { setAgents, setAgentsLoading } from './redux/agentSlice'
-import { getAllAgents } from './features/agent'
 
 const App = () => {
   const dispatch = useDispatch()
+  const [loading, setLoading] = useState(true)
+  const {userData} = useSelector(state => state.user)
+
   useEffect(() => {
     const fetch = async () => {
       try {
         const data = await me()
-        const ai = await chat("what is my name?")
-        console.log(ai)
         dispatch(setUserData(data))
       } catch (error) {
         console.log(error)
+      } finally {
+        setLoading(false)
       }
     }
   fetch()
-
   }, [])
 
-  const fetchAgents = async () => {
-        dispatch(setAgentsLoading(true))
-    
-      try {
-        const data = await getAllAgents();
-        dispatch(setAgents(data))
-        dispatch(setAgentsLoading(false))
-        setLoading(false);
-        console.log(data);
-      } catch (error) {
-        dispatch(setAgentsLoading(false))
-        console.log(error);
-      }
-    };
-
-    useEffect(() => {
-      fetchAgents()
-    }, [])
-
-const {userData} = useSelector(state => state.user)
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <>

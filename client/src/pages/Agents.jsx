@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deleteAgent, getAllAgents } from "@/features/agent";
-import { setDelete } from "@/redux/agentSlice";
+import { setAgents, setAgentsLoading, setDelete, setSelectedAgent } from "@/redux/agentSlice";
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,13 +23,14 @@ const whiteBtn =
 
 const Agents = () => {
   const [search, setSearch] = useState("");
-  const dispatch = useDispatch()
-  const {agents, agentsLoading:loading} = useSelector(state => state.agent)
-  
+  const dispatch = useDispatch();
+  const { agents, agentsLoading: loading } = useSelector(
+    (state) => state.agent,
+  );
 
-  useEffect(() => {
-    fetchAgents();
-  }, []);
+  // useEffect(() => {
+  //   fetchAgents();
+  // }, []);
 
   const filteredAgents = agents.filter((agent) => {
     const query = search.toLowerCase();
@@ -40,14 +41,33 @@ const Agents = () => {
     );
   });
 
+  const fetchAgents = async () => {
+    dispatch(setAgentsLoading(true));
+
+    try {
+      const data = await getAllAgents();
+      dispatch(setAgents(data));
+      dispatch(setAgentsLoading(false));
+      setLoading(false);
+      console.log(data);
+    } catch (error) {
+      dispatch(setAgentsLoading(false));
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAgents();
+  }, []);
+
   const handleDelete = async (id) => {
     try {
-      await deleteAgent(id)
-      dispatch(setDelete(id))
+      await deleteAgent(id);
+      await fetchAgents();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,#2b2f3a_0%,#191b21_55%,#121317_100%)] text-white">
@@ -156,6 +176,7 @@ const Agents = () => {
                       <span className="text-xs text-zinc-600">My Agents</span>
                       <Button
                         asChild
+                        onClick={() => dispatch(setSelectedAgent(agent.name))}
                         variant="ghost"
                         size="sm"
                         className="h-8 gap-1.5 rounded-lg text-zinc-300 hover:bg-white/10 hover:text-white"
