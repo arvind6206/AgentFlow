@@ -1,4 +1,5 @@
 import {
+  ArrowUpIcon,
   Bot,
   Check,
   ChevronDown,
@@ -24,7 +25,11 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/features/auth";
 import { setUserData } from "@/redux/userSlice";
-import { setSelectedAgent, setAgents, setAgentsLoading } from "@/redux/agentSlice";
+import {
+  setSelectedAgent,
+  setAgents,
+  setAgentsLoading,
+} from "@/redux/agentSlice";
 import { getAllAgents } from "@/features/agent";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -45,16 +50,7 @@ const whiteBtn =
   "rounded-xl border-0 bg-white text-zinc-300 hover:bg-zinc-200 hover:text-zinc-900";
 
 const Home = () => {
-  const [messages, setMessages] = useState([
-    {
-      role: "user",
-      content: "hello",
-    },
-    {
-      role: "assistant",
-      content: "Hii",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { userData } = useSelector((state) => state.user);
   const { agents, selectedAgent } = useSelector((state) => state.agent);
@@ -295,36 +291,54 @@ const Home = () => {
                         side="top"
                         className={`mb-2 w-60 ${menuContent}`}
                       >
-                        {!agents && 
+                        {!agents && (
                           <DropdownMenuItem className={menuItem}>
                             No Agent Found
                           </DropdownMenuItem>
-                        }
+                        )}
 
-                        {
-                          agents?.map((agent, index) => (
-                            <DropdownMenuItem 
-                              key={index}
-                               onClick={(e) => {
-                                e.preventDefault();
-                                dispatch(setSelectedAgent(agent.name))
-                               }}
-                              className={`cursor-pointer gap-2 ${menuItem}`}
-                            >
-                              <Bot size={15} className='shrink-0 text-violet-300'/>
-                              <span className="truncate">
-                                {agent?.name}
-                              </span>
-                              {selectedAgent === agent?.name && 
-                              <Check className='ml-auto text-xs text-violet-300'/>
-                              }
-                            </DropdownMenuItem>
-                          ))
-                        }
+                        {agents?.map((agent, index) => (
+                          <DropdownMenuItem
+                            key={index}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              dispatch(setSelectedAgent(agent.name));
+                            }}
+                            className={`cursor-pointer gap-2 ${menuItem}`}
+                          >
+                            <Bot
+                              size={15}
+                              className="shrink-0 text-violet-300"
+                            />
+                            <span className="truncate">{agent?.name}</span>
+                            {selectedAgent === agent?.name && (
+                              <Check className="ml-auto text-xs text-violet-300" />
+                            )}
+                          </DropdownMenuItem>
+                        ))}
 
-                        <DropdownMenuSeparator className={`${menuSeperator}`}/>
+                        <DropdownMenuSeparator className={`${menuSeperator}`} />
+                        <DropdownMenuItem asChild className={menuItem}>
+                          <Link
+                            to={"/agents/new"}
+                            className="flex items-center gap-2"
+                          >
+                            <Plus size={15} /> Create new agent
+                          </Link>
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="submit"
+                      size="icon"
+                      aria-label="Send message"
+                      className={`size-8 shrink-0 ${whiteBtn} disabled:bg-white/10 disabled:text-zinc-500`}
+                    >
+                      <ArrowUpIcon size={16}/>
+                    </Button>
                   </div>
                 </div>
               </form>
