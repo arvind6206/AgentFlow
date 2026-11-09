@@ -1,5 +1,6 @@
 import {
   Bot,
+  ImagePlus,
   LogOut,
   Plus,
   Settings2,
@@ -21,6 +22,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/features/auth";
 import { setUserData } from "@/redux/userSlice";
+import { Textarea } from "@/components/ui/textarea";
 
 const hideScrollbar =
   "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -39,6 +41,16 @@ const whiteBtn =
   "rounded-xl border-0 bg-white text-zinc-300 hover:bg-zinc-200 hover:text-zinc-900";
 
 const Home = () => {
+  const [messages, setMessages] = useState([
+    {
+      role: "user",
+      content: "hello",
+    },
+    {
+      role: "assistant",
+      content: "Hii",
+    },
+  ]);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -168,6 +180,93 @@ const Home = () => {
             </DropdownMenu>
           </div>
         </header>
+
+        <main className="flex min-h-0 flex-1 flex-col">
+          <section className="flex min-h-0 flex-1 flex-col">
+            <div className={`min-h-0 flex-1 overflow-y-auto ${hideScrollbar}`}>
+              <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5 px-4 py-8 sm:px-6">
+                {messages.length === 0 && (
+                  <div className="flex flex-1 flex-col items-center justify-center pb-8 text-center">
+                    <div className="mb-7 grid size-14 place-items-center rounded-2xl bg-white text-zinc-900">
+                      <Workflow size={26} />
+                    </div>
+
+                    <p className="text-base text-violet-300/80">
+                      Hi, {userData?.name || "User"}
+                    </p>
+                    <h1 className="mt-1 text-2xl font-semibold text-white tracking-tight sm:text-3xl">
+                      Can I help you with anything?
+                    </h1>
+                    <p className="mt-4 max-w-sm text-xs leading-5 text-zinc-500">
+                      Ask questions, automate tasks, or upload an image to
+                      prepare an Instagram post.
+                    </p>
+                  </div>
+                )}
+
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    {message.role === "assistant" && (
+                      <div
+                        className="mr-3 mt-1 grid size-8 shrink-0 place-items-center
+                      rounded-lg bg-white text-zinc-900"
+                      >
+                        <Workflow size={15} />
+                      </div>
+                    )}
+
+                    <div
+                      className={`max-w-[90%] break-words px-4 py-3 text-sm
+                      leading-7 sm:max-w-[80%] ${
+                        message.role === "user"
+                          ? `rounded-2xl
+                        rounded-br-md text-white ${darkPanel}`
+                          : "text-zinc-200"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="z-20 w-full shrink-0 px-3 pb-3 pt-2 sm:pb-4">
+              <form
+                className={`mx-auto w-full max-w-2xl rounded-2xl p-3 transition-colors
+                focus-within:border-white/25 ${darkPanel}`}
+              >
+                <Textarea
+                  placeholder={"Ask me anything..."}
+                  className={`min-h-20 resize-none border-0 !bg-transparent px-2 py-1.5 text-sm
+                    text-white shadow-none placeholder:text-zinc-500 focus-visible:ring-0 ${hideScrollbar}`}
+                />
+                <div className='flex items-center justify-between gap-3 pt-2'>
+                  <div className='flex min-w-0 items-center gap-2'>
+                    <Button type="button"
+                    variant="ghost"
+                    aria-label="Attach image"
+                    title="Attach image"
+                    className='size-8 rounded-lg text-zinc-300 hover:bg-white/10 hover:text-white'>
+                      <ImagePlus size={17}/>
+                    </Button>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild >
+
+                      </DropdownMenuTrigger>
+                    </DropdownMenu>
+
+                  </div>
+
+                </div>
+              </form>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   );

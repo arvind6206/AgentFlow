@@ -16,7 +16,7 @@ const App = () => {
     const fetch = async () => {
       try {
         const data = await me()
-        const ai = await chat("hello")
+        const ai = await chat("what is my name?")
         console.log(ai)
         dispatch(setUserData(data))
       } catch (error) {
