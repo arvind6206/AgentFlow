@@ -7,7 +7,8 @@ const agentSchema = new mongoose.Schema({
     },
     name: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     knowledgeBase: {
         type: String,

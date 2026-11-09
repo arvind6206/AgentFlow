@@ -1,5 +1,6 @@
 import {
   Bot,
+  Check,
   ChevronDown,
   ImagePlus,
   LogOut,
@@ -303,15 +304,25 @@ const Home = () => {
                         {
                           agents?.map((agent, index) => (
                             <DropdownMenuItem 
-                              key={index} 
+                              key={index}
+                               onClick={(e) => {
+                                e.preventDefault();
+                                dispatch(setSelectedAgent(agent.name))
+                               }}
                               className={`cursor-pointer gap-2 ${menuItem}`}
-                              onClick={() => dispatch(setSelectedAgent(agent?.name))}
                             >
                               <Bot size={15} className='shrink-0 text-violet-300'/>
-                              {agent?.name}
+                              <span className="truncate">
+                                {agent?.name}
+                              </span>
+                              {selectedAgent === agent?.name && 
+                              <Check className='ml-auto text-xs text-violet-300'/>
+                              }
                             </DropdownMenuItem>
                           ))
                         }
+
+                        <DropdownMenuSeparator className={`${menuSeperator}`}/>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

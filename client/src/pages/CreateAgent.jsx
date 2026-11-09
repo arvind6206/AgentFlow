@@ -36,7 +36,7 @@ const fieldCls =
   "rounded-xl border-white/10 bg-white/[0.04] text-sm text-white backdrop-blur-xl placeholder:text-zinc-500 focus-visible:border-white/25 focus-visible:ring-0";
 
 const CreateAgent = () => {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
   const [knowledgeBase, setKnowledgeBase] = useState("");
@@ -55,22 +55,30 @@ const CreateAgent = () => {
     });
   };
 
-  const handleSubmit = async(e) => {
-     e.preventDefault()
-     setLoading(true)
-   try {
-    const data = await createAgent({
-      name, knowledgeBase, instructions, tools
-    })
-    console.log(data)
-    setLoading(false)
-    navigate('/agents')
-   } catch (error) {
-    console.log(error)
-    setError(error.response.data.message || "Unable to create agent")
-    setLoading(false)
-   }
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const data = await createAgent({
+        name,
+        knowledgeBase,
+        instructions,
+        tools,
+      });
+      console.log(result);
+      if (result?.response?.data.message) {
+        console.log(error);
+        setError(result?.response?.data.message);
+        setLoading(false)
+        return;
+      }
+      setLoading(false);
+      navigate("/agents");
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,#2b2f3a_0%,#191b21_55%,#121317_100%)] text-white">
@@ -189,7 +197,10 @@ const CreateAgent = () => {
                   return (
                     <button
                       key={t.id}
-                      onClick={(e) => {e.preventDefault(); toggleTool(t.id)}}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleTool(t.id);
+                      }}
                       className={`flex w-full items-center justify-between gap-4 px-4
                         py-3.5 text-left transition ${index !== 0 ? "border-t border-white/[0.08]" : ""}
                         ${

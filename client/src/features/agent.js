@@ -9,6 +9,7 @@ export const createAgent = async ({name, knowledgeBase, instructions, tools}) =>
         return data
     } catch (error) {
         console.log(error)
+
     }
 }
 
@@ -19,6 +20,7 @@ export const getAllAgents = async () => {
         return data
     } catch (error) {
         console.log(error)
+        return error
     }
 }
 
