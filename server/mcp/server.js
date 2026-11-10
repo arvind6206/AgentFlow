@@ -7,6 +7,18 @@ const server = new McpServer({
     version: "1.0.0",
   });
 
+  server.registerTool(
+    "web_search", {
+        description: "Search the web for current information, tutorials, and news.",
+        inputSchema: z.object({
+            query: z.string()
+        })
+    },
+    async ({query}) => {
+        
+    }
+  )
+
   const main = async () => {
     const transport = new StdioServerTransport()
     await server.connect(transport)
