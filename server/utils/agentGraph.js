@@ -1,27 +1,27 @@
-import { ChatGroq } from "@langchain/groq"
-import {MessagesAnnotation, StateGraph} from '@langchain/langgraph'
-import {ToolNode} from '@langchain/langgraph/prebuilt'
+import { ChatGroq } from "@langchain/groq";
+import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import { MongoClient } from "mongodb";
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 import { SystemMessage } from "@langchain/core/messages";
-dotenv.config()
+dotenv.config();
 
 const llm = new ChatGroq({
-    model: "openai/gpt-oss-120b",
-    temperature: 0,
-    maxTokens: undefined,
-    maxRetries: 2,
-})
+  model: "openai/gpt-oss-120b",
+  temperature: 0,
+  maxTokens: undefined,
+  maxRetries: 2,
+});
 
 const client = new MongoClient(process.env.MONGO_URI);
-const checkpointer = new MongoDBSaver({ client, dbName: "langgraph" })
+const checkpointer = new MongoDBSaver({ client, dbName: "langgraph" });
 
 const currentDateTime = new Intl.DateTimeFormat("en-IN", {
-    timeZone: "Asia/Kolkata",
-    dateStyle: "full",
-    timeStyle: "long"
-}).format(new Date())
+  timeZone: "Asia/Kolkata",
+  dateStyle: "full",
+  timeStyle: "long",
+}).format(new Date());
 
 const systemPrompt = `
 ${chatAgentGraph.instructions || "You are Automate AI, a helpful personal assistant."}
@@ -108,45 +108,32 @@ GENERAL RULES:
 - Infer parameters when sufficient context is available.
 - Never substitute a natural-language promise for a tool call.
 - Ask questions only when essential information is missing.
-`
+`;
 
 const chatNode = async (state) => {
-    const response = await llm.invoke([
-        new SystemMessage
-    ])
+  const response = await llm.invoke([new SystemMessage()]);
 
-    return {
-        messages: [response]
-    }
-}
+  return {
+    messages: [response],
+  };
+};
 
-const toolNode = new ToolNode()
+const toolNode = new ToolNode();
 
-const actionApprovalNode = () => {
-    
-}
+const actionApprovalNode = () => {};
 
-const routeFromChat = () => {
+const routeFromChat = () => {};
 
-}
-
-const routeAfterApproval = () => {
-
-}
-
+const routeAfterApproval = () => {};
 
 const workflow = new StateGraph(MessagesAnnotation)
-.addNode("chatNode", chatNode)
-.addNode("tools", ToolNode)
-.addNode("actionApprovalNode", actionApprovalNode)
-.addEdge("__start__", chatNode)
-.addConditionalEdges("chatNode", routeFromChat)
-.addEdge("tools", "chatNode")
-.addConditionalEdges("actionApprovalNode", routeAfterApproval)
-.addEdge("chatNode", "__end__")
+  .addNode("chatNode", chatNode)
+  .addNode("tools", ToolNode)
+  .addNode("actionApprovalNode", actionApprovalNode)
+  .addEdge("__start__", chatNode)
+  .addConditionalEdges("chatNode", routeFromChat)
+  .addEdge("tools", "chatNode")
+  .addConditionalEdges("actionApprovalNode", routeAfterApproval)
+  .addEdge("chatNode", "__end__");
 
-const chatAgentGraph = workflow.compile({checkpointer})
-
-
-
-
+const chatAgentGraph = workflow.compile({ checkpointer });
