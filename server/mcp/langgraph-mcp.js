@@ -10,7 +10,12 @@ const adapter = new MCPAdapter({
     automate: {
         transport: "stdio",
         command: process.execPath,
-        args: serverPath
+        args: [serverPath]
     }
   },
 });
+
+export const getMcpTools = async () => {
+  const tools = await adapter.listTools()
+  console.log(tools.map((tool) => tool.name))
+}
