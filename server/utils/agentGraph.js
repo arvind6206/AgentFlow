@@ -18,7 +18,7 @@ const llm = new ChatGroq({
 const client = new MongoClient(process.env.MONGO_URI);
 const checkpointer = new MongoDBSaver({ client, dbName: "langgraph" });
 
-const createAgentGraph = async (agentRouter, userId) => {
+export const createAgentGraph = async (agentRouter, userId) => {
 
   const mcpTools = await getMcpTools()
   console.log(mcpTools.map((tool) => tool.name))
