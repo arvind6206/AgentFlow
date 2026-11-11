@@ -32,7 +32,7 @@ import {
 } from "@/redux/agentSlice";
 import { getAllAgents } from "@/features/agent";
 import { Textarea } from "@/components/ui/textarea";
-import { chat } from "@/features/chat";
+import { agentChat, chat } from "@/features/chat";
 
 const hideScrollbar =
   "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -95,6 +95,15 @@ const Home = () => {
       const res = await chat(message)
 
       
+      setMessages((prev) => [
+        ...prev, {
+          role: "assistant",
+          content: res?.aiResponse || res?.response?.data?.message || "something went wrong"
+        }
+      ])
+      return
+    } else {
+      const res = await agentChat(message, selectedAgent)
       setMessages((prev) => [
         ...prev, {
           role: "assistant",

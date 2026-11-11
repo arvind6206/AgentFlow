@@ -19,11 +19,10 @@ const client = new MongoClient(process.env.MONGO_URI);
 const checkpointer = new MongoDBSaver({ client, dbName: "langgraph" });
 
 export const createAgentGraph = async (agentRouter, userId) => {
+  const mcpTools = await getMcpTools();
+  console.log(mcpTools);
 
-  const mcpTools = await getMcpTools()
-  console.log(mcpTools.map((tool) => tool.name))
-
-  const llmWithTools = llm.bindTools(mcpTools)
+  const llmWithTools = llm.bindTools(mcpTools);
 
   const currentDateTime = new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -119,7 +118,11 @@ GENERAL RULES:
 `;
 
   const chatNode = async (state) => {
-    const response = await llmWithTools.invoke([new SystemMessage()]);
+    const response = await llmWithTools.invoke([new SystemMessage(
+      systemPrompt
+    ), 
+    ...state.messages
+  ]);
 
     return {
       messages: [response],
@@ -130,7 +133,9 @@ GENERAL RULES:
 
   const actionApprovalNode = () => {};
 
-  const routeFromChat = () => {};
+  const routeFromChat = () => {
+    
+  };
 
   const routeAfterApproval = () => {};
 
@@ -145,5 +150,5 @@ GENERAL RULES:
     .addEdge("chatNode", "__end__");
 
   const chatAgentGraph = workflow.compile({ checkpointer });
-  return chatAgentGraph
+  return chatAgentGraph;
 };

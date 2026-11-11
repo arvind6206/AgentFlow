@@ -3,9 +3,17 @@ import {
   serveStdio,
   StdioServerTransport,
 } from "@modelcontextprotocol/server/stdio";
+import path from "node:path";
+import {fileURLToPath} from 'node:url'
+
+const _fileName = fileURLToPath(import.meta.url)
+const dirName = path.dirname(_fileName)
+
 import { z } from "zod";
 import dotenv from 'dotenv'
-dotenv.config()
+dotenv.config({
+  path: path.resolve(dirName, "../.env")
+})
 import { TavilySearch } from "@langchain/tavily";
 
 const server = new McpServer({
@@ -13,9 +21,16 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
+if(!process.env.TAVILY_API_KEY){
+  throw new Error(
+    "TAVILY_API_KEY missing. Check the backend .env path."
+  )
+}
+
 const tavilySearch = new TavilySearch({
   maxResults: 5,
   topic: "general",
+  tavilyApiKey: process.env.TAVILY_API_KEY
 });
 
 server.registerTool(
