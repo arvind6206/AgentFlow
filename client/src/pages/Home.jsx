@@ -1,11 +1,11 @@
 import {
-  ArrowUpIcon,
   Bot,
   Check,
   ChevronDown,
   ImagePlus,
   LogOut,
   Plus,
+  Send,
   Settings2,
   UserRound,
   Workflow,
@@ -25,14 +25,10 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/features/auth";
 import { setUserData } from "@/redux/userSlice";
-import {
-  setSelectedAgent,
-  setAgents,
-  setAgentsLoading,
-} from "@/redux/agentSlice";
+import { setSelectedAgent, setAgents, setAgentsLoading } from "@/redux/agentSlice";
 import { getAllAgents } from "@/features/agent";
+import { chat, agentChat } from "@/features/chat";
 import { Textarea } from "@/components/ui/textarea";
-import { agentChat, chat } from "@/features/chat";
 
 const hideScrollbar =
   "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -53,9 +49,10 @@ const whiteBtn =
 const Home = () => {
   const [messages, setMessages] = useState([]);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [inputMessage, setInputMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const { userData } = useSelector((state) => state.user);
   const { agents, selectedAgent } = useSelector((state) => state.agent);
-  const [message, setMessage] = useState("")
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
@@ -63,6 +60,45 @@ const Home = () => {
     await logout();
     dispatch(setUserData(null));
     setLogoutLoading(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!inputMessage.trim()) return;
+
+    const userMessage = inputMessage;
+    setInputMessage("");
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setLoading(true);
+
+    try {
+      let response;
+      if (selectedAgent) {
+        response = await agentChat(userMessage, selectedAgent);
+      } else {
+        response = await chat(userMessage);
+      }
+
+      if (response?.aiResponse) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: response.aiResponse },
+        ]);
+      } else if (response?.msg) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: `Error: ${response.msg}` },
+        ]);
+      }
+    } catch (error) {
+      console.error(error);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Something went wrong. Please try again." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -81,38 +117,6 @@ const Home = () => {
     };
     fetchAgentsData();
   }, [userData]);
-
-  const handleSubmit = async(e) => {
-      e.preventDefault()
-    setMessages((prev) => [
-      ...prev, {
-        role: "user",
-        content: message
-      }
-    ])
-
-    if(!selectedAgent){
-      const res = await chat(message)
-
-      
-      setMessages((prev) => [
-        ...prev, {
-          role: "assistant",
-          content: res?.aiResponse || res?.response?.data?.message || "something went wrong"
-        }
-      ])
-      return
-    } else {
-      const res = await agentChat(message, selectedAgent)
-      setMessages((prev) => [
-        ...prev, {
-          role: "assistant",
-          content: res?.aiResponse || res?.response?.data?.message || "something went wrong"
-        }
-      ])
-      return
-    }
-  }
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,#2b2f3a_0%,#191b21_55%,#121317_100%)]">
@@ -289,9 +293,10 @@ const Home = () => {
                 focus-within:border-white/25 ${darkPanel}`}
               >
                 <Textarea
-                onChange={(e) => setMessage(e.target.value)}
-                value={message}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={"Ask me anything..."}
+                  disabled={loading}
                   className={`min-h-20 resize-none border-0 !bg-transparent px-2 py-1.5 text-sm
                     text-white shadow-none placeholder:text-zinc-500 focus-visible:ring-0 ${hideScrollbar}`}
                 />
@@ -328,56 +333,36 @@ const Home = () => {
                         side="top"
                         className={`mb-2 w-60 ${menuContent}`}
                       >
-                        {!agents && (
+                        {!agents && 
                           <DropdownMenuItem className={menuItem}>
                             No Agent Found
                           </DropdownMenuItem>
-                        )}
+                        }
 
-                        {agents?.map((agent, index) => (
-                          <DropdownMenuItem
-                            key={index}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              dispatch(setSelectedAgent(agent.name));
-                            }}
-                            className={`cursor-pointer gap-2 ${menuItem}`}
-                          >
-                            <Bot
-                              size={15}
-                              className="shrink-0 text-violet-300"
-                            />
-                            <span className="truncate">{agent?.name}</span>
-                            {selectedAgent === agent?.name && (
-                              <Check className="ml-auto text-xs text-violet-300" />
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-
-                        <DropdownMenuSeparator className={`${menuSeperator}`} />
-                        <DropdownMenuItem asChild className={menuItem}>
-                          <Link
-                            to={"/agents/new"}
-                            className="flex items-center gap-2"
-                          >
-                            <Plus size={15} /> Create new agent
-                          </Link>
-                        </DropdownMenuItem>
+                        {
+                          agents?.map((agent, index) => (
+                            <DropdownMenuItem 
+                              key={index} 
+                              className={`cursor-pointer gap-2 ${menuItem}`}
+                              onClick={() => dispatch(setSelectedAgent(agent?.name))}
+                            >
+                              <Bot size={15} className='shrink-0 text-violet-300'/>
+                              <span className='truncate flex-1'>{agent?.name}</span>
+                              {selectedAgent === agent?.name && <Check size={14} className="text-zinc-400"/>}
+                            </DropdownMenuItem>
+                          ))
+                        }
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                    onClick={(e)=>handleSubmit(e)}
-                      type="submit"
-                      size="icon"
-                      aria-label="Send message"
-                      className={`size-8 shrink-0 ${whiteBtn} disabled:bg-white/10 disabled:text-zinc-500`}
-                    >
-                      <ArrowUpIcon size={16}/>
-                    </Button>
-                  </div>
+                  <Button
+                    type="submit"
+                    disabled={loading || !inputMessage.trim()}
+                    variant="ghost"
+                    className="size-8 rounded-lg text-zinc-300 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                  >
+                    <Send size={17} />
+                  </Button>
                 </div>
               </form>
             </div>

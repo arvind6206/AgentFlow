@@ -48,7 +48,7 @@ server.registerTool(
         content: [
           {
             type: "text",
-            text: result,
+            text: JSON.stringify(result),
           },
         ],
       };

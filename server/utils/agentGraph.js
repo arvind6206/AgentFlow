@@ -6,6 +6,8 @@ import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import { SystemMessage } from "@langchain/core/messages";
 import { getMcpTools } from "../mcp/langgraph-mcp.js";
+import { DynamicStructuredTool } from "@langchain/core/tools";
+import z from "zod";
 dotenv.config();
 
 const llm = new ChatGroq({
@@ -18,11 +20,43 @@ const llm = new ChatGroq({
 const client = new MongoClient(process.env.MONGO_URI);
 const checkpointer = new MongoDBSaver({ client, dbName: "langgraph" });
 
+const findTool = (tools, names) => {
+  return tools.find((tool) => names?.includes(tool.name));
+};
+
 export const createAgentGraph = async (agentRouter, userId) => {
   const mcpTools = await getMcpTools();
-  console.log(mcpTools);
+  console.log("mcpTools", mcpTools);
 
-  const llmWithTools = llm.bindTools(mcpTools);
+  const webSearchMCPTool = findTool(mcpTools, ["web_search", "automate_web_search"])
+
+  const finalTools = []
+  if(webSearchMCPTool){
+    finalTools.push(
+      new DynamicStructuredTool(
+        {
+          name: "web_search",
+          description: `Search the web for current information, news, tutorials, documentation, and factual questions`,
+          schema: z.object({
+            query: z.string().describe("The search query")
+          }),
+          func: async ({query}) => {
+              try {
+                const result = await webSearchMCPTool.invoke({query})
+                console.log(result)
+                return result
+              } catch (error) {
+                console.log("MCP search error:", error)
+                return "Failed to perform web search"
+              }
+          }
+        }
+      )
+    )
+  }
+
+
+  const llmWithTools = llm.bindTools(finalTools);
 
   const currentDateTime = new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -31,7 +65,7 @@ export const createAgentGraph = async (agentRouter, userId) => {
   }).format(new Date());
 
   const systemPrompt = `
-${chatAgentGraph.instructions || "You are Automate AI, a helpful personal assistant."}
+${agentRouter.instructions || "You are Automate AI, a helpful personal assistant."}
 
 CURRENT DATE AND TIME:
 - Current date and time in Asia/Kolkata: ${currentDateTime}
@@ -117,38 +151,56 @@ GENERAL RULES:
 - Ask questions only when essential information is missing.
 `;
 
-  const chatNode = async (state) => {
-    const response = await llmWithTools.invoke([new SystemMessage(
-      systemPrompt
-    ), 
-    ...state.messages
+  const approvalTools = new Set([
+    "send_email",
+    "create_calender_event",
+    "publish_instagram_image",
   ]);
+
+  const chatNode = async (state) => {
+    console.log("chatNode received state:", state);
+    const recentMessages = state.messages.slice(-4);
+    console.log("Recent messages:", recentMessages);
+    
+    const response = await llmWithTools.invoke([
+      new SystemMessage(systemPrompt),
+      ...recentMessages,
+    ]);
+
+    console.log("LLM response:", response);
 
     return {
       messages: [response],
     };
   };
 
-  const toolNode = new ToolNode(mcpTools);
+  const toolNode = new ToolNode(finalTools);
 
-  const actionApprovalNode = () => {};
+  const routeFromChat = (state) => {
+    const messages = state.messages || [];
+    console.log("state messages", messages);
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage.tool_calls?.length) {
+      return "__end__";
+    }
 
-  const routeFromChat = () => {
-    
+    const requiresApproval = lastMessage?.tool_calls?.some((call) =>
+      approvalTools.has(call.name),
+    );
+
+    // For now, skip approval and go directly to tools
+    return "tools";
   };
-
-  const routeAfterApproval = () => {};
 
   const workflow = new StateGraph(MessagesAnnotation)
     .addNode("chatNode", chatNode)
-    .addNode("tools", ToolNode)
-    .addNode("actionApprovalNode", actionApprovalNode)
-    .addEdge("__start__", chatNode)
+    .addNode("tools", toolNode)
+    .addEdge("__start__", "chatNode")
     .addConditionalEdges("chatNode", routeFromChat)
     .addEdge("tools", "chatNode")
-    .addConditionalEdges("actionApprovalNode", routeAfterApproval)
-    .addEdge("chatNode", "__end__");
 
+  console.log("Compiling workflow...");
   const chatAgentGraph = workflow.compile({ checkpointer });
+  console.log("Workflow compiled successfully");
   return chatAgentGraph;
 };

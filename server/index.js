@@ -25,8 +25,20 @@ app.use('/api/chat', chatRouter)
 
 
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
-  connectDB();
 
+// Initialize MCP tools on server startup
+const initializeMCP = async () => {
+  try {
+    console.log("Initializing MCP tools...");
+    const tools = await getMcpTools();
+    console.log("MCP tools initialized successfully:", tools.map(t => t.name));
+  } catch (error) {
+    console.error("Failed to initialize MCP tools:", error);
+  }
+};
+
+app.listen(PORT, async () => {
+  connectDB();
+  await initializeMCP();
   console.log(`Server is listening on http://localhost:${PORT}`);
 });

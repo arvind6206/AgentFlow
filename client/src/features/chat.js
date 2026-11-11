@@ -5,11 +5,10 @@ export const chat = async (message) => {
         const {data} = await api.post("/api/chat", {
             message
         })
-
         return data
     } catch (error) {
-        console.log(error)
-        return error
+        console.log("Chat API error:", error)
+        return { msg: error.response?.data?.msg || "Something went wrong" }
     }
 }
 
@@ -19,10 +18,9 @@ export const agentChat = async (message, agent) => {
             message,
             agent
         })
-
         return data
     } catch (error) {
-        console.log(error)
-        return error
+        console.log("Agent chat API error:", error)
+        return { msg: error.response?.data?.msg || "Something went wrong" }
     }
 }
