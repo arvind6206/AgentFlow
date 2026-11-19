@@ -54,7 +54,6 @@ export const agentChat = async (req, res) => {
       });
     }
 
-    const threadId = req.user._id.toString();
     const existingAgent = await Agent.findOne({ name: agent, userId: req.user._id });
 
     if(!existingAgent){
@@ -62,6 +61,8 @@ export const agentChat = async (req, res) => {
             msg: "agent not found"
         })
     }
+    const threadId = `${req.user._id.toString()}: ${existingAgent?._id}`;
+
 
     console.log("Creating agent graph for:", existingAgent.name);
     const graph = await createAgentGraph(existingAgent, req.user._id);

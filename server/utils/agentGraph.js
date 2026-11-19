@@ -24,37 +24,52 @@ const findTool = (tools, names) => {
   return tools.find((tool) => names?.includes(tool.name));
 };
 
+const limitMessageContext = (message, maxChars = 4000) => {
+  if (typeof message.content !== "string") {
+    return message;
+  }
+
+  if (message.content.length <= maxChars) {
+    return message;
+  }
+
+  return {
+    ...message,
+    content: message.content.slice(0, 4000) + `/n[content truncated]`,
+  };
+};
+
 export const createAgentGraph = async (agentRouter, userId) => {
   const mcpTools = await getMcpTools();
   console.log("mcpTools", mcpTools);
 
-  const webSearchMCPTool = findTool(mcpTools, ["web_search", "automate_web_search"])
+  const webSearchMCPTool = findTool(mcpTools, [
+    "web_search",
+    "automate_web_search",
+  ]);
 
-  const finalTools = []
-  if(webSearchMCPTool){
+  const finalTools = [];
+  if (webSearchMCPTool) {
     finalTools.push(
-      new DynamicStructuredTool(
-        {
-          name: "web_search",
-          description: `Search the web for current information, news, tutorials, documentation, and factual questions`,
-          schema: z.object({
-            query: z.string().describe("The search query")
-          }),
-          func: async ({query}) => {
-              try {
-                const result = await webSearchMCPTool.invoke({query})
-                console.log(result)
-                return result
-              } catch (error) {
-                console.log("MCP search error:", error)
-                return "Failed to perform web search"
-              }
+      new DynamicStructuredTool({
+        name: "web_search",
+        description: `Search the web for current information, news, tutorials, documentation, and factual questions`,
+        schema: z.object({
+          query: z.string().describe("The search query"),
+        }),
+        func: async ({ query }) => {
+          try {
+            const result = await webSearchMCPTool.invoke({ query });
+            console.log(result);
+            return result;
+          } catch (error) {
+            console.log("MCP search error:", error);
+            return "Failed to perform web search";
           }
-        }
-      )
-    )
+        },
+      }),
+    );
   }
-
 
   const llmWithTools = llm.bindTools(finalTools);
 
@@ -158,10 +173,12 @@ GENERAL RULES:
   ]);
 
   const chatNode = async (state) => {
-    console.log("chatNode received state:", state);
-    const recentMessages = state.messages.slice(-4);
-    console.log("Recent messages:", recentMessages);
-    
+    // console.log("chatNode received state:", state);
+    const recentMessages = state.messages
+      .slice(-4)
+      .map((message) => limitMessageContext(message));
+    // console.log("Recent messages:", recentMessages);
+
     const response = await llmWithTools.invoke([
       new SystemMessage(systemPrompt),
       ...recentMessages,
@@ -197,7 +214,7 @@ GENERAL RULES:
     .addNode("tools", toolNode)
     .addEdge("__start__", "chatNode")
     .addConditionalEdges("chatNode", routeFromChat)
-    .addEdge("tools", "chatNode")
+    .addEdge("tools", "chatNode");
 
   console.log("Compiling workflow...");
   const chatAgentGraph = workflow.compile({ checkpointer });
